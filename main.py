@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
+
 def get_book_review_links(title:str, author:str):
 
     query_str = '{0} - {1} reviews'.format(title, author)
@@ -20,8 +21,16 @@ def get_storygraph_rating_url(title:str, author:str):
     for j in search(query_str, tld="co.in", num=10, stop=10, pause=2):
         links.append(j)
     print(links)
+
     sg_review_hit = [url for url in links if "app.thestorygraph.com/books" in url]
-    return sg_review_hit[0]
+    try:
+        sg_review_url = sg_review_hit[0]
+    except IndexError:
+        print('book review not hit')
+        sg_review_try = [url for url in links if "app.thestorygraph.com/book_reviews" in url]
+        for x in sg_review_try:
+            print(x.split('/')[-1])
+#    return sg_review_hit[0]
 
 def parse_storygraph_ratings(sg_address:str):
     print(sg_address)
@@ -67,22 +76,27 @@ def parse_review_questions():
         response_text = response.get_text(strip=True)
         question_dictionary.update({question_text : response_text})
 
+    print('plot or character driven')
     plot = question_dictionary.get('Plot- or character-driven?')
     plot_res = parse_sg_question(plot)
     print(plot_res)
 
+    print('strong character development')
     development = question_dictionary.get('Strong character development?')
     dev_res = parse_sg_question(development)
     print(dev_res)
 
+    print('loveable characters')
     loveable = question_dictionary.get('Loveable characters?')
     loveable_res = parse_sg_question(loveable)
     print(loveable_res)
 
+    print('diverse cast of characters')
     diverse = question_dictionary.get('Diverse cast of characters?')
     diverse_res = parse_sg_question(diverse)
     print(diverse_res)
 
+    print('flaws of main character a main focus')
     flaws = question_dictionary.get('Flaws of characters a main focus?')
     flaws_res = parse_sg_question(flaws)
     print(flaws_res)
@@ -109,27 +123,13 @@ def soupify_storygraph_page(url:str):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    title = 'The Bean Trees'
-    author = 'Barbara Kingsolver'
+    title = 'Dress Your Children in Corduroy and Denim'
+    author = 'David Sedaris'
     get_book_review_links(title, author)
     sg_result = get_storygraph_rating_url(title, author)
-    soup_txt = soupify_storygraph_page(sg_result)
-    parse_storygraph_ratings(sg_result)
-    moods = get_mood_reviews()
-    paces = get_pace_reviews()
-    parse_review_questions()
-    rating = parse_rating()
-
-    print(moods)
-    print(paces)
-
-    #query = "The Seven Husbands of Evelyn Hugo - Taylor Jenkins Reid storygraph book review"
-    #links = []
-    #for j in search(query, tld="co.in", num=10, stop=10, pause=2):
-       # links.append(j)
-       # print(j)
-
-    #print(links)
-
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    # soup_txt = soupify_storygraph_page(sg_result)
+    # parse_storygraph_ratings(sg_result)
+    # moods = get_mood_reviews()
+    # paces = get_pace_reviews()
+    # parse_review_questions()
+    # rating = parse_rating()
