@@ -56,13 +56,15 @@ def parse_storygraph_ratings(sg_address:str):
 
 def get_mood_reviews():
     emot_dict = {}
-    mood_label = soup_txt.find("div", class_ = 'moods-list-reviews').find_all("span", class_ ='md:mr-1')
-    percentages = soup_txt.find("div", class_='moods-list-reviews').find_all("span", class_='percentage')
 
-    for mood, percent in zip(mood_label, percentages):
-        mood_text = mood.get_text(strip=True)
-        percent_text = percent.get_text(strip=True)
-        emot_dict.update({mood_text: percent_text})
+    for emot_item in soup_txt.find_all('p', class_='text-blackish dark:text-white'):
+        mood_label = emot_item.find('span', class_='font-medium')
+        percentage_text = mood_label.find_next_sibling(string=True).strip() if mood_label else ''
+
+        if mood_label and percentage_text:
+            mood = mood_label.text
+            percent = int(percentage_text.replace('%', '').replace(':', '').strip())
+            emot_dict[mood] = percent
 
     return emot_dict
 
