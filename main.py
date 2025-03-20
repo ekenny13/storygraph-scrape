@@ -25,17 +25,28 @@ def get_storygraph_rating_url(title:str, author:str):
     sg_review_hit = [url for url in links if "app.thestorygraph.com/books" in url]
     try:
         sg_review_url = sg_review_hit[0]
+        print(sg_review_url)
     except IndexError:
         print('book review not hit')
         sg_review_try = [url for url in links if "app.thestorygraph.com/book_reviews" in url]
         for x in sg_review_try:
             print(x.split('/')[-1])
-#    return sg_review_hit[0]
+    return sg_review_url
 
 def parse_storygraph_ratings(sg_address:str):
     print(sg_address)
     sg_identifier = sg_address.split('/')[-1]
-    num_reviews = soup_txt.find('h3').find('a').get_text()
+    try:
+        num_reviews = soup_txt.find('h3').find('a').get_text()
+        print(num_reviews)
+    except AttributeError:
+        print('could not find h3/a header')
+        try:
+            num_reviews = soup_txt.find('a', class_="inverse-link underline").get_text()
+            print(num_reviews)
+        except  AttributeError:
+            print('not found')
+
     avg_rating = soup_txt.find('span', class_="average-star-rating").get_text()
     avg_rating = avg_rating.strip()
     num_reviews = num_reviews.strip()
@@ -123,13 +134,14 @@ def soupify_storygraph_page(url:str):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    title = 'Dress Your Children in Corduroy and Denim'
-    author = 'David Sedaris'
+    title = 'The Bean Trees'
+    author = 'Barbara Kingsolver'
     get_book_review_links(title, author)
     sg_result = get_storygraph_rating_url(title, author)
-    # soup_txt = soupify_storygraph_page(sg_result)
-    # parse_storygraph_ratings(sg_result)
-    # moods = get_mood_reviews()
+    soup_txt = soupify_storygraph_page(sg_result)
+    parse_storygraph_ratings(sg_result)
+    moods = get_mood_reviews()
+    print(moods)
     # paces = get_pace_reviews()
     # parse_review_questions()
     # rating = parse_rating()
