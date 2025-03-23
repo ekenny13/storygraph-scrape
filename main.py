@@ -33,21 +33,20 @@ def get_storygraph_rating_url(title:str, author:str):
             print(x.split('/')[-1])
     return sg_review_url
 
-def parse_storygraph_ratings(sg_address:str):
-    print(sg_address)
-    sg_identifier = sg_address.split('/')[-1]
+def parse_storygraph_ratings(review_url:str):
+    sg_identifier = review_url.split('/')[-1]
     try:
-        num_reviews = soup_txt.find('h3').find('a').get_text()
+        num_reviews = souped_review_txt.find('h3').find('a').get_text()
         print(num_reviews)
     except AttributeError:
         print('could not find h3/a header')
         try:
-            num_reviews = soup_txt.find('a', class_="inverse-link underline").get_text()
+            num_reviews = souped_review_txt.find('a', class_="inverse-link underline").get_text()
             print(num_reviews)
         except  AttributeError:
             print('not found')
 
-    avg_rating = soup_txt.find('span', class_="average-star-rating").get_text()
+    avg_rating = souped_review_txt.find('span', class_="average-star-rating").get_text()
     avg_rating = avg_rating.strip()
     num_reviews = num_reviews.strip()
     print(sg_identifier)
@@ -57,7 +56,7 @@ def parse_storygraph_ratings(sg_address:str):
 def get_mood_reviews():
     emot_dict = {}
 
-    for emot_item in soup_txt.find_all('p', class_='text-blackish dark:text-white'):
+    for emot_item in souped_review_txt.find_all('p', class_='text-blackish dark:text-white'):
         mood_label = emot_item.find('span', class_='font-medium')
         percentage_text = mood_label.find_next_sibling(string=True).strip() if mood_label else ''
 
@@ -70,19 +69,16 @@ def get_mood_reviews():
 
 def get_pace_reviews():
     paces_dict = {}
-    pace_labels = soup_txt.find('div', class_='paces-reviews').find_all('span', class_='md:mr-1')
-    percentages = soup_txt.find('div', class_='paces-reviews').find_all('span', class_='percentage')
-
-    for pace, percent in zip(pace_labels, percentages):
-        pace_text = pace.get_text(strip=True)
-        percent_text = percent.get_text(strip=True)
-        paces_dict.update({pace_text: percent_text})
+    paces_portion = souped_review_txt.find('div', class_='w-full max-w-xl').find_all('span', class_='sr-only')
+    for x in paces_portion:
+        line = str(x.get_text())
+        paces_dict[line.split()[4]] = line.split()[0]
 
     return paces_dict
 
 def parse_review_questions():
-    questions = soup_txt.find_all('p', class_='review-character-question')
-    responses = soup_txt.find_all('span', class_='review-response-summary')
+    questions = souped_review_txt.find_all('p', class_='review-character-question')
+    responses = souped_review_txt.find_all('span', class_='review-response-summary')
     question_dictionary = {}
     for question, response in zip(questions, responses):
         question_text = question.get_text(strip=True)
@@ -122,28 +118,37 @@ def parse_sg_question(answer_set:str):
     return results_dictionary
 
 def parse_rating():
-    rating = soup_txt.find('span', class_='average-star-rating')
+    rating = souped_review_txt.find('span', class_='average-star-rating')
     rt = rating.get_text().strip()
     return rt
 
 def soupify_storygraph_page(url:str):
-    print(url + '/community_reviews' )
-    comm_review_url = url + '/community_reviews'
-    page = requests.get(comm_review_url)
+    page = requests.get(url)
     txt = page.text
     soup = BeautifulSoup(txt, 'html.parser')
     return soup
 
+def get_book_tags():
+    base_page = requests.get(base_url)
+    base_txt = page.text
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    title = 'Careless People'
+    author = 'Sarah Wynn-Williams'
     title = 'The Bean Trees'
     author = 'Barbara Kingsolver'
     get_book_review_links(title, author)
     sg_result = get_storygraph_rating_url(title, author)
-    soup_txt = soupify_storygraph_page(sg_result)
-    parse_storygraph_ratings(sg_result)
+    print(sg_result)
+    souped_base_txt = soupify_storygraph_page(sg_result)
+    comm_review_url = sg_result + '/community_reviews'
+    souped_review_txt = soupify_storygraph_page(comm_review_url)
+    parse_storygraph_ratings(comm_review_url)
     moods = get_mood_reviews()
     print(moods)
-    # paces = get_pace_reviews()
-    # parse_review_questions()
+    paces = get_pace_reviews()
+    print(paces)
+    #parse_review_questions()
     # rating = parse_rating()
